@@ -1,3 +1,0 @@
-App.java > Username, connect to server, cli
-Game.java > GUI
-Mec.java > Logic
