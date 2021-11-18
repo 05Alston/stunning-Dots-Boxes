@@ -3,7 +3,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.Color;
-hiiiiiiiiiiiiiii tiffany here making changes
+//hiiiiiiiiiiiiiii tiffany here making changes
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
