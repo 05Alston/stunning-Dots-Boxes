@@ -167,9 +167,10 @@ class BoxSprite extends Sprite {
 	}
 }
 
-public class Dots extends JFrame implements MouseMotionListener, MouseListener {
+public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 	
 	JButton restart;
+	JFrame frame;
 	JButton exit;
 	JPanel p1;
      
@@ -206,10 +207,10 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
 
     public Dots() {
 
-        super("Dots & Boxes");
-        setSize(600, 600);
-       	// setResizable(false);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame=new JFrame("Dots & Boxes");
+        frame.setSize(600, 650);
+       	frame.setResizable(false);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         addMouseListener(this);
         addMouseMotionListener(this);
         restart= new JButton("Reset");
@@ -217,7 +218,9 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
 		p1=new JPanel();
         p1.add(exit);
         p1.add(restart);
-        add(p1,BorderLayout.SOUTH);
+		setSize(600, 600);
+		frame.add(this,BorderLayout.CENTER);
+        frame.add(p1,BorderLayout.SOUTH);
         p1.setOpaque(false);
         p1.setBackground(Color.BLUE);
         restart.addActionListener(new ActionListener(){  
@@ -231,14 +234,9 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
                 System.exit(0);
             }  
         });
-        
-        
-
+    
         NewGame();
-
-    	
-        
-        setVisible(true);
+        frame.setVisible(true);
     }
     
     private void loadProperties() {
