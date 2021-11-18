@@ -3,7 +3,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.Color;
-
+//hiiiiiiiiiiiiiii tiffany here making changes
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseEvent;
@@ -14,6 +14,15 @@ import javax.swing.*;
 import javax.swing.JOptionPane;
 
 class Sprite {
+
+	/*
+	 *	
+	 *	Sprite is the basic object that is drawn onto the screen. The dots 
+	 *	are all Sprite objects. ConnectionSprite and BoxSprite are subclasses
+	 *	of Sprite. Sprite has a method check to see if a point is within
+	 *	the drawn object. Sprite also has method to draw the Sprite to the screen.	 
+	 *
+	 */
 
     Polygon shape;	//	The shape that is to be drawn
     Color color;	//	The color of the shape
@@ -54,6 +63,14 @@ class Sprite {
 
 class ConnectionSprite extends Sprite {
 
+	/*
+	 *
+	 *	ConnectionSprite is a sublcass of Sprite. There are two types of connections: vertical
+	 *	connections between dots and horizontal connections between sprites. The static method
+	 *	createConnection is a convenience method to create the ConnectionSprite at the proper
+	 *	coordinates and build its shape.
+	 *
+	 */
 
     public static final int HORZ_CONN=1;
     public static final int VERT_CONN=2;
@@ -94,6 +111,16 @@ class ConnectionSprite extends Sprite {
 }
 
 class BoxSprite extends Sprite {
+
+	/*
+	 *
+	 *	BoxSprite is a subclass of Sprite. BoxSprites represent the actual boxes made up by the Dot 
+	 *	Sprites and ConnectionSprites. BoxSprite contains references to the four ConnectionSprites
+	 *	which make up its borders. The isBoxed method returns true when all four of the border
+	 *	ConnectionSprites have true connectionMade fields. BoxSprites should be created using the
+	 *	static createBox method.
+	 *
+	 */
 
 	ConnectionSprite[] horizontalConnections;	//	The ConnectionSprites that are the top and bottom borders of the box
 	ConnectionSprite[] verticalConnections;		//	The ConnectionSprites that are the left and right borders of the box
@@ -140,9 +167,10 @@ class BoxSprite extends Sprite {
 	}
 }
 
-public class Dots extends JFrame implements MouseMotionListener, MouseListener {
+public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 	
 	JButton restart;
+	JFrame frame;
 	JButton exit;
 	JPanel p1;
      
@@ -179,10 +207,10 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
 
     public Dots() {
 
-        super("Dots & Boxes");
-        setSize(600, 600);
-       	// setResizable(false);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame=new JFrame("Dots & Boxes");
+        frame.setSize(600, 650);
+       	frame.setResizable(false);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         addMouseListener(this);
         addMouseMotionListener(this);
         restart= new JButton("Reset");
@@ -190,7 +218,10 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
 		p1=new JPanel();
         p1.add(exit);
         p1.add(restart);
-        add(p1,BorderLayout.SOUTH);
+		setSize(600, 600);
+		frame.add(this,BorderLayout.CENTER);
+        frame.add(p1,BorderLayout.SOUTH);
+        p1.setOpaque(false);
         p1.setBackground(Color.BLUE);
         restart.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
@@ -203,13 +234,14 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
                 System.exit(0);
             }  
         });
-	    
-        NewGame(); 
-        setVisible(true);
+    
+        NewGame();
+        frame.setVisible(true);
     }
     
     private void loadProperties() {
     	//	Initialize fields
+    	
         clickx=0;
         clicky=0;
         mousex=0;
@@ -222,11 +254,24 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
         side=DOT_NUMBER * DOT_SIZE + (DOT_NUMBER - 1) * DOT_GAP;	//	There is one less connection than dot per side
     	space=DOT_SIZE + DOT_GAP;
     }
-	
+    
     private void loadConnections() {
     	
         horizontalConnections=new ConnectionSprite[(DOT_NUMBER-1) * DOT_NUMBER];
         verticalConnections=new ConnectionSprite[(DOT_NUMBER-1) * DOT_NUMBER];
+        
+        /*
+         *
+         *	There are two ways to cycle through the Connections, Boxes, and Dots grids. This way uses only 1 for
+         *	loop and keeps track of the current row and column number in colsx, rowsx, colsy, rowsy. colsx and rowsx
+         *	track the columns and rows for the horizontalConnections while colsy and rowsy track the columns and
+         *	rows for the vertical connections. The reason to have different fields for vertical and horizontal
+         *	connections is so that both grids will be filled in left to right and then top to bottom (rows first
+         *	then columns). This makes it easier to match the connection up to box or boxes it borders. Simple setting 
+         *	colsy=rowsx and rowsy=colsx will put the vertical connections on the correct place on the screen 
+         *	but they won't match up to the boxes correctly.
+         *
+         */
         
         for(int i=0; i<horizontalConnections.length; i++) {
         	int colsx=i % (DOT_NUMBER-1);
@@ -244,6 +289,13 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
     } 
     	
     private void loadBoxes() {
+    	
+    	/*
+    	 *
+    	 *	loadBoxes cycles through the box grid the way loadConnection does. There is oneless box per side
+    	 *	than dot per side.
+    	 *
+    	 */
     	
     	boxes=new BoxSprite[(DOT_NUMBER-1) * (DOT_NUMBER-1)];
     	
@@ -267,6 +319,15 @@ public class Dots extends JFrame implements MouseMotionListener, MouseListener {
     }
     
     private void loadDots() {
+
+		/*
+		 *
+		 *	loadDots cycles through the dot grid differently than the loadConnections and loadBoxes methods
+		 *	cycle through the connections and boxes grids. The loadDots cycles through the dot grid with two
+		 *	for loops. It doesn't matter what order the dots are loaded into the dots array since they are for
+		 *	visual purposes only. The body of the loop also contains the code to actually build the dots shape.
+		 *
+		 */
 
         dots=new Sprite[DOT_NUMBER * DOT_NUMBER];
         for(int rows=0; rows<DOT_NUMBER; rows++) {
