@@ -184,7 +184,6 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 		setSize(600, 600);
 		frame.add(this,BorderLayout.CENTER);
         frame.add(p1,BorderLayout.SOUTH);
-        p1.setBackground(Color.BLUE);
         restart.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
         		NewGame();
