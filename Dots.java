@@ -1,17 +1,8 @@
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Polygon;
-import java.awt.Color;
 //hiiiiiiiiiiiiiii tiffany here making changes
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.*;
 import java.awt.*;
 
 import javax.swing.*;
-import javax.swing.JOptionPane;
 
 class Sprite {
 
@@ -497,8 +488,6 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	String status2="Player 1: " + scores[0];
     	String status3="Player 2: " + scores[1];
     	
-    	//Color currentColor=(activePlayer==PLAYER_ONE) ? PLAYER_ONE_COLOR : PLAYER_TWO_COLOR ;
-    	//g.setColor(currentColor);
     	g.setColor(Color.BLACK);
     	g.drawString(status, 10, dim.height-80);
 		g.fillRect(0, dim.height-100, dim.width, 2);
@@ -515,8 +504,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     }
     
     public void paint(Graphics g) {
-    	//	The double buffer technique is not really necessary because there is no animation
-		// super.paintComponents(g);
+ 
     	Image bufferImage=createImage(dim.width, dim.height);
     	Graphics bufferGraphics=bufferImage.getGraphics();
     	
