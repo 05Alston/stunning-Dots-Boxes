@@ -1,7 +1,9 @@
 //hiiiiiiiiiiiiiii tiffany here making changes
 import java.awt.event.*;
 import java.awt.*;
-
+import java.io.*;
+import java.net.Socket;
+import java.util.Scanner;
 import javax.swing.*;
 
 class Sprite {
@@ -167,6 +169,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     private int space;	// Length of 1 dot + 1 connection
     	
     private int activePlayer;	// 	Holds the current player
+	Client c1= new Client();
 
     public Dots() {
 
@@ -281,6 +284,8 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 
     private void NewGame(){
 		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
+		if(dot==null)System.exit(0);
+
 		DOT_NUMBER = Integer.parseInt(dot);
 		loadProperties();
         loadDots();
@@ -367,6 +372,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	int[] scores=calculateScores();
     	if((scores[0] + scores[1])==((DOT_NUMBER - 1) * (DOT_NUMBER - 1))) {
     		JOptionPane.showMessageDialog(this, "Player1: " + scores[0] + "\nPlayer2: " + scores[1], "Game Over", JOptionPane.PLAIN_MESSAGE);
+			c1.closeEverything();
     		NewGame();
     		repaint();
     	}
@@ -520,3 +526,85 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	new Dots();
     }
 } 
+
+
+class Client {
+
+    private Socket socket;
+    private BufferedReader bufferedReader;
+    private BufferedWriter bufferedWriter;
+    private String username;
+
+    public Client(Socket socket, String username) {
+        try {
+            this.socket = socket;
+            this.username = username;
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        } catch (IOException e) {
+            closeEverything(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
+    public void sendMessage() {
+        try {
+            bufferedWriter.write(username);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+            Scanner scanner = new Scanner(System.in);
+            while (socket.isConnected()) {
+                String messageToSend = scanner.nextLine();
+                bufferedWriter.write(username + ": " + messageToSend);
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
+            }
+        } catch (IOException e) {
+            closeEverything(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
+    public void listenForMessage() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String msgFromGroupChat;
+                while (socket.isConnected()) {
+                    try {
+                        msgFromGroupChat = bufferedReader.readLine();
+                        System.out.println(msgFromGroupChat);
+                    } 
+                    catch (IOException e) {
+                        closeEverything(socket, bufferedReader, bufferedWriter);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+        try {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            }
+            if (bufferedWriter != null) {
+                bufferedWriter.close();
+            }
+            if (socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+	void clientConnect() throws Exception{
+		Scanner scanner = new Scanner(System.in);
+        // System.out.print("Enter your username for the group chat: ");
+        String username = scanner.nextLine();
+        Socket socket = new Socket("localhost", 3389);
+
+        Client client = new Client(socket, username);
+        client.listenForMessage();
+        client.sendMessage();
+	}
+}
+
