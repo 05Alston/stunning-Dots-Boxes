@@ -169,7 +169,6 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     private int space;	// Length of 1 dot + 1 connection
     	
     private int activePlayer;	// 	Holds the current player
-	Client c1= new Client();
 
     public Dots() {
 
@@ -198,9 +197,14 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
                 System.exit(0);
             }  
         });
-    
         NewGame();
         frame.setVisible(true);
+        // try {
+        //     clientConnect();
+        // } catch (Exception e) {
+        //     //TODO: handle exception
+        // }
+
     }
     
     private void loadProperties() {
@@ -282,10 +286,9 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
         }
     }
 
-    private void NewGame(){
+    public void NewGame(){
 		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
 		if(dot==null)System.exit(0);
-
 		DOT_NUMBER = Integer.parseInt(dot);
 		loadProperties();
         loadDots();
@@ -372,7 +375,6 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	int[] scores=calculateScores();
     	if((scores[0] + scores[1])==((DOT_NUMBER - 1) * (DOT_NUMBER - 1))) {
     		JOptionPane.showMessageDialog(this, "Player1: " + scores[0] + "\nPlayer2: " + scores[1], "Game Over", JOptionPane.PLAIN_MESSAGE);
-			c1.closeEverything();
     		NewGame();
     		repaint();
     	}
@@ -404,14 +406,28 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     public void mouseClicked(MouseEvent event) {
     	clickx=event.getX();
     	clicky=event.getY();
-    	getClick();
-    	setClick();
-    	handleClick();
+    	if(activePlayer==PLAYER_ONE)
+            getClick();
+        else
+            setClick(clickx,clicky);
+        handleClick();
     }
+    void clientConnect() throws Exception{
+		Scanner scanner = new Scanner(System.in);
+        // System.out.print("Enter your username for the group chat: ");
+        float x=0;
+        float y=0;
+
+        Socket socket = new Socket("localhost", 3389);
+
+        Client client = new Client(socket, x, y);
+        client.listenForMessage();
+        client.sendMessage();
+	}
 	public void getClick(){
 		
 	}
-	public void setClick(){
+	public void setClick(float x, float y){
 		handleClick();
 	}
     
@@ -533,12 +549,15 @@ class Client {
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
-    private String username;
+    private float x;
+    private float y;
+    // Dots d = new Dots();
 
-    public Client(Socket socket, String username) {
+    public Client(Socket socket, float x, float y) {
         try {
             this.socket = socket;
-            this.username = username;
+            this.x = x;
+            this.y = y;
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
@@ -548,13 +567,13 @@ class Client {
 
     public void sendMessage() {
         try {
-            bufferedWriter.write(username);
+            // bufferedWriter.write(username);
             bufferedWriter.newLine();
             bufferedWriter.flush();
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
+                // String messageToSend = scanner.nextLine();
+                bufferedWriter.write(x + ":" + y);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
@@ -567,11 +586,15 @@ class Client {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String msgFromGroupChat;
+                String input;
                 while (socket.isConnected()) {
                     try {
-                        msgFromGroupChat = bufferedReader.readLine();
-                        System.out.println(msgFromGroupChat);
+                        input = bufferedReader.readLine();
+                        System.out.println(input);
+                        String[] arrOfStr = input.split(":");
+                        x= Float.parseFloat(arrOfStr[0]);
+                        y= Float.parseFloat(arrOfStr[1]);
+                        new Dots().setClick(x,y);
                     } 
                     catch (IOException e) {
                         closeEverything(socket, bufferedReader, bufferedWriter);
@@ -596,15 +619,5 @@ class Client {
             e.printStackTrace();
         }
     }
-	void clientConnect() throws Exception{
-		Scanner scanner = new Scanner(System.in);
-        // System.out.print("Enter your username for the group chat: ");
-        String username = scanner.nextLine();
-        Socket socket = new Socket("localhost", 3389);
-
-        Client client = new Client(socket, username);
-        client.listenForMessage();
-        client.sendMessage();
-	}
 }
 

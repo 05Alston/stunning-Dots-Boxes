@@ -80,7 +80,7 @@ class Client1 {
         String username = scanner.nextLine();
         Socket socket = new Socket("52.183.155.51", 3389);
 
-        Client client = new Client(socket, username);
+        Client1 client = new Client1(socket, username);
         client.listenForMessage();
         client.sendMessage();
     }
