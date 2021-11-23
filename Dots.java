@@ -3,133 +3,6 @@ import java.awt.event.*;
 import java.awt.*;
 
 import javax.swing.*;
-
-class Sprite {
-
-    Polygon shape;	//	The shape that is to be drawn
-    Color color;	//	The color of the shape
-    int width;		//	Width of the Sprite
-    int height;		//	Height of the Sprite
-    int x;			//	Horizontal coordinate of the center of the sprite
-    int y;			//	Vertical coordinate of the center of the sprite
-    
-    public Sprite() {
-    	//	Initialize all the fields
-        shape=new Polygon();
-        width=0;
-        height=0;
-        x=0;
-        y=0;
-        color=Color.BLACK;
-    }
-    
-    public void render(Graphics g) {
-    	//	The render method is responsible for positioning the sprite at the proper location
-    	
-        g.setColor(color);
-        
-        Polygon renderedShape=new Polygon();
-        for(int i=0; i<shape.npoints; i++) {
-            int renderedx=shape.xpoints[i] + x + width / 2;
-            int renderedy=shape.ypoints[i] + y + height / 2;
-            renderedShape.addPoint(renderedx, renderedy);
-        }
-        g.fillPolygon(renderedShape);
-    }
-    
-    public boolean containsPoint(int x, int y) {
-    	//	This returns true only if the point (x, y) is contained within the visible shape of the sprite
-    	return shape.contains(x - this.x - width /2, y - this.y - height /2);
-    }
-}
-
-class ConnectionSprite extends Sprite {
-
-    public static final int HORZ_CONN=1;
-    public static final int VERT_CONN=2;
-    
-    boolean connectionMade;	// Tracks wether the ConnectionSprite has been clicked on
-    
-    public ConnectionSprite() {
-    	// Initialize all the fields
-        super();
-        
-        connectionMade=false;
-        color=Color.WHITE;
-    }
-    
-    public static ConnectionSprite createConnection(int type, int x, int y) {
-    	ConnectionSprite conn=new ConnectionSprite();
-    	
-        if(type==ConnectionSprite.HORZ_CONN) {
-        	conn.width=Dots.DOT_GAP;
-        	conn.height=Dots.DOT_SIZE;
-        } else if(type==ConnectionSprite.VERT_CONN) {
-        	conn.width=Dots.DOT_SIZE;
-        	conn.height=Dots.DOT_GAP;
-        } else {
-        	return null;
-        }
-
-        conn.x=x;
-        conn.y=y;
-
-        conn.shape.addPoint(-conn.width/2, -conn.height/2);
-        conn.shape.addPoint(-conn.width/2, conn.height/2);
-        conn.shape.addPoint(conn.width/2, conn.height/2);
-        conn.shape.addPoint(conn.width/2, -conn.height/2);
-        
-        return conn;
-    }
-}
-
-class BoxSprite extends Sprite {
-
-	ConnectionSprite[] horizontalConnections;	//	The ConnectionSprites that are the top and bottom borders of the box
-	ConnectionSprite[] verticalConnections;		//	The ConnectionSprites that are the left and right borders of the box
-
-	int player;	//	Tracks the player that closed the box
-
-	public BoxSprite() {
-		super();
-
-		color=Color.WHITE;	//	Initially the box should be the same color as the background
-
-		horizontalConnections=new ConnectionSprite[2];
-		verticalConnections=new ConnectionSprite[2];
-
-		width=Dots.DOT_GAP;
-		height=Dots.DOT_GAP;
-		
-		shape.addPoint(-width/2, -height/2);
-        shape.addPoint(-width/2, height/2);
-        shape.addPoint(width/2, height/2);
-        shape.addPoint(width/2, -height/2);
-	}	
-
-	public boolean isBoxed() {
-		boolean boxed=true;
-
-		for(int i=0; i<2; i++) {
-			if(!horizontalConnections[i].connectionMade || !verticalConnections[i].connectionMade) {
-				boxed=false;
-			}
-		}
-
-		return boxed;
-	}
-
-	public static BoxSprite createBox(int x, int y, ConnectionSprite[] horizontalConnections, ConnectionSprite[] verticalConnections) {
-		BoxSprite box=new BoxSprite();
-		box.player=0;
-		box.x=x;
-		box.y=y;
-		box.horizontalConnections=horizontalConnections;
-		box.verticalConnections=verticalConnections;
-		return box;
-	}
-}
-
 public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 	
 	JButton restart;
@@ -199,6 +72,16 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
         NewGame();
         frame.setVisible(true);
     }
+
+	private void NewGame(){
+		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
+		if (dot==null)
+			System.exit(0);
+		DOT_NUMBER = Integer.parseInt(dot);
+		loadProperties();
+        loadDots();
+		startGame();
+	}
     
     private void loadProperties() {
     	//	Initialize fields
@@ -214,6 +97,26 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
         
         side=DOT_NUMBER * DOT_SIZE + (DOT_NUMBER - 1) * DOT_GAP;	//	There is one less connection than dot per side
     	space=DOT_SIZE + DOT_GAP;
+    }
+
+	private void loadDots() {
+
+        dots=new Sprite[DOT_NUMBER * DOT_NUMBER];
+        for(int rows=0; rows<DOT_NUMBER; rows++) {
+            for(int cols=0; cols<DOT_NUMBER; cols++) {
+                Sprite dot=new Sprite();
+                dot.width=DOT_SIZE;
+                dot.height=DOT_SIZE;
+                dot.x=centerx - side/2 + cols * space;
+                dot.y=centery - side/2 + rows * space;
+                dot.shape.addPoint(-DOT_SIZE/2, -DOT_SIZE/2);
+                dot.shape.addPoint(-DOT_SIZE/2, DOT_SIZE/2);
+                dot.shape.addPoint(DOT_SIZE/2, DOT_SIZE/2);
+                dot.shape.addPoint(DOT_SIZE/2, -DOT_SIZE/2);
+                int index=rows * DOT_NUMBER + cols;
+                dots[index]=dot;
+            }
+        }
     }
     
     private void loadConnections() {
@@ -259,35 +162,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	}
     }
     
-    private void loadDots() {
-
-        dots=new Sprite[DOT_NUMBER * DOT_NUMBER];
-        for(int rows=0; rows<DOT_NUMBER; rows++) {
-            for(int cols=0; cols<DOT_NUMBER; cols++) {
-                Sprite dot=new Sprite();
-                dot.width=DOT_SIZE;
-                dot.height=DOT_SIZE;
-                dot.x=centerx - side/2 + cols * space;
-                dot.y=centery - side/2 + rows * space;
-                dot.shape.addPoint(-DOT_SIZE/2, -DOT_SIZE/2);
-                dot.shape.addPoint(-DOT_SIZE/2, DOT_SIZE/2);
-                dot.shape.addPoint(DOT_SIZE/2, DOT_SIZE/2);
-                dot.shape.addPoint(DOT_SIZE/2, -DOT_SIZE/2);
-                int index=rows * DOT_NUMBER + cols;
-                dots[index]=dot;
-            }
-        }
-    }
-
-    private void NewGame(){
-		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
-		DOT_NUMBER = Integer.parseInt(dot);
-		loadProperties();
-        loadDots();
-		startNewGame();
-	}
-
-    private void startNewGame() {
+    private void startGame() {
 		
     	activePlayer=(double)Math.random()*1 >0.5?PLAYER_ONE:PLAYER_TWO;
     	loadConnections();
@@ -323,18 +198,6 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	return status;
     }
     
-    private int[] calculateScores() {
-    	int[] scores={0, 0};
-    	
-    	for(int i=0; i<boxes.length; i++) {
-    		if(boxes[i].isBoxed() && boxes[i].player!=0) {
-    			scores[boxes[i].player - 1]++;
-    		}
-    	}
-    	
-    	return scores;
-    }
-    
     private boolean makeConnection(ConnectionSprite connection) {
     	boolean newBox=false;
     	
@@ -362,7 +225,19 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	
     	return newBox;
     }
-    
+
+    private int[] calculateScores() {
+    	int[] scores={0, 0};
+    	
+    	for(int i=0; i<boxes.length; i++) {
+    		if(boxes[i].isBoxed() && boxes[i].player!=0) {
+    			scores[boxes[i].player - 1]++;
+    		}
+    	}
+    	
+    	return scores;
+    }
+
     private void checkForGameOver() {
     	int[] scores=calculateScores();
     	if((scores[0] + scores[1])==((DOT_NUMBER - 1) * (DOT_NUMBER - 1))) {
@@ -371,7 +246,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     		repaint();
     	}
     }
-    
+	
     private void handleClick() {
     	ConnectionSprite connection=getConnection(clickx, clicky);
     	if(connection==null)
@@ -388,6 +263,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     public void mouseMoved(MouseEvent event) {
     	mousex=event.getX();
     	mousey=event.getY();
+		System.out.println(mousex+":"+mousey);
     	repaint();
     }
     
@@ -398,16 +274,8 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     public void mouseClicked(MouseEvent event) {
     	clickx=event.getX();
     	clicky=event.getY();
-    	getClick();
-    	setClick();
     	handleClick();
     }
-	public void getClick(){
-		
-	}
-	public void setClick(){
-		handleClick();
-	}
     
     public void mouseEntered(MouseEvent event) {	
     }
