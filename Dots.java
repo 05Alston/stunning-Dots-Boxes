@@ -73,16 +73,6 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
         frame.setVisible(true);
     }
 
-	private void NewGame(){
-		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
-		if (dot==null)
-			System.exit(0);
-		DOT_NUMBER = Integer.parseInt(dot);
-		loadProperties();
-        loadDots();
-		startGame();
-	}
-    
     private void loadProperties() {
     	//	Initialize fields
     	
@@ -96,7 +86,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
         centery=(dim.height - 100) /2;
         
         side=DOT_NUMBER * DOT_SIZE + (DOT_NUMBER - 1) * DOT_GAP;	//	There is one less connection than dot per side
-    	space=DOT_SIZE + DOT_GAP;
+    	space=DOT_SIZE + DOT_GAP;  
     }
 
 	private void loadDots() {
@@ -161,6 +151,18 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     		boxes[i]=BoxSprite.createBox(boxx, boxy, horConn, verConn);
     	}
     }
+
+	
+	private void NewGame(){
+		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
+		if (dot==null)
+			System.exit(0);
+		DOT_NUMBER = Integer.parseInt(dot);
+		loadProperties();
+        loadDots();
+		startGame();
+	}
+    
     
     private void startGame() {
 		
@@ -365,11 +367,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	g.setColor(PLAYER_TWO_COLOR);
     	g.drawString(status3, 10, dim.height-50);
     }
-    
-    public void update(Graphics g) {
-    	paint(g);
-    }
-    
+	
     public void paint(Graphics g) {
  
     	Image bufferImage=createImage(dim.width, dim.height);
@@ -384,7 +382,12 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	g.drawImage(bufferImage, 0, 0, null);
     }
     
+    public void update(Graphics g) {
+    	paint(g);
+    }
+
     public static void main(String[] args) {
     	new Dots();
     }
-} 
+}
+
