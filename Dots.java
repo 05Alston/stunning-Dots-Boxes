@@ -1,143 +1,15 @@
 //hiiiiiiiiiiiiiii tiffany here making changes
 import java.awt.event.*;
 import java.awt.*;
-import java.io.*;
-import java.net.Socket;
-import java.util.Scanner;
 import javax.swing.*;
-
-class Sprite {
-
-    Polygon shape;	//	The shape that is to be drawn
-    Color color;	//	The color of the shape
-    int width;		//	Width of the Sprite
-    int height;		//	Height of the Sprite
-    int x;			//	Horizontal coordinate of the center of the sprite
-    int y;			//	Vertical coordinate of the center of the sprite
-    
-    public Sprite() {
-    	//	Initialize all the fields
-        shape=new Polygon();
-        width=0;
-        height=0;
-        x=0;
-        y=0;
-        color=Color.BLACK;
-    }
-    
-    public void render(Graphics g) {
-    	//	The render method is responsible for positioning the sprite at the proper location
-    	
-        g.setColor(color);
-        
-        Polygon renderedShape=new Polygon();
-        for(int i=0; i<shape.npoints; i++) {
-            int renderedx=shape.xpoints[i] + x + width / 2;
-            int renderedy=shape.ypoints[i] + y + height / 2;
-            renderedShape.addPoint(renderedx, renderedy);
-        }
-        g.fillPolygon(renderedShape);
-    }
-    
-    public boolean containsPoint(int x, int y) {
-    	//	This returns true only if the point (x, y) is contained within the visible shape of the sprite
-    	return shape.contains(x - this.x - width /2, y - this.y - height /2);
-    }
-}
-
-class ConnectionSprite extends Sprite {
-
-    public static final int HORZ_CONN=1;
-    public static final int VERT_CONN=2;
-    
-    boolean connectionMade;	// Tracks wether the ConnectionSprite has been clicked on
-    
-    public ConnectionSprite() {
-    	// Initialize all the fields
-        super();
-        
-        connectionMade=false;
-        color=Color.WHITE;
-    }
-    
-    public static ConnectionSprite createConnection(int type, int x, int y) {
-    	ConnectionSprite conn=new ConnectionSprite();
-    	
-        if(type==ConnectionSprite.HORZ_CONN) {
-        	conn.width=Dots.DOT_GAP;
-        	conn.height=Dots.DOT_SIZE;
-        } else if(type==ConnectionSprite.VERT_CONN) {
-        	conn.width=Dots.DOT_SIZE;
-        	conn.height=Dots.DOT_GAP;
-        } else {
-        	return null;
-        }
-
-        conn.x=x;
-        conn.y=y;
-
-        conn.shape.addPoint(-conn.width/2, -conn.height/2);
-        conn.shape.addPoint(-conn.width/2, conn.height/2);
-        conn.shape.addPoint(conn.width/2, conn.height/2);
-        conn.shape.addPoint(conn.width/2, -conn.height/2);
-        
-        return conn;
-    }
-}
-
-class BoxSprite extends Sprite {
-
-	ConnectionSprite[] horizontalConnections;	//	The ConnectionSprites that are the top and bottom borders of the box
-	ConnectionSprite[] verticalConnections;		//	The ConnectionSprites that are the left and right borders of the box
-
-	int player;	//	Tracks the player that closed the box
-
-	public BoxSprite() {
-		super();
-
-		color=Color.WHITE;	//	Initially the box should be the same color as the background
-
-		horizontalConnections=new ConnectionSprite[2];
-		verticalConnections=new ConnectionSprite[2];
-
-		width=Dots.DOT_GAP;
-		height=Dots.DOT_GAP;
-		
-		shape.addPoint(-width/2, -height/2);
-        shape.addPoint(-width/2, height/2);
-        shape.addPoint(width/2, height/2);
-        shape.addPoint(width/2, -height/2);
-	}	
-
-	public boolean isBoxed() {
-		boolean boxed=true;
-
-		for(int i=0; i<2; i++) {
-			if(!horizontalConnections[i].connectionMade || !verticalConnections[i].connectionMade) {
-				boxed=false;
-			}
-		}
-
-		return boxed;
-	}
-
-	public static BoxSprite createBox(int x, int y, ConnectionSprite[] horizontalConnections, ConnectionSprite[] verticalConnections) {
-		BoxSprite box=new BoxSprite();
-		box.player=0;
-		box.x=x;
-		box.y=y;
-		box.horizontalConnections=horizontalConnections;
-		box.verticalConnections=verticalConnections;
-		return box;
-	}
-}
+import java.net.*;
 
 public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 	
 	JButton restart;
 	JFrame frame;
 	JButton exit;
-	JPanel p1;
+	JPanel panel;
      
     public int DOT_NUMBER=6;	//	The number of dots on each side of the square game board
     public static final int DOT_GAP=40;		//	The space between each dot					
@@ -169,7 +41,8 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     private int space;	// Length of 1 dot + 1 connection
     	
     private int activePlayer;	// 	Holds the current player
-
+    Client client = new Client();
+    
     public Dots() {
 
         frame=new JFrame("Dots & Boxes");
@@ -180,12 +53,12 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
         addMouseMotionListener(this);
         restart= new JButton("Reset");
         exit=new JButton("Exit");
-		p1=new JPanel();
-        p1.add(exit);
-        p1.add(restart);
+		panel=new JPanel();
+        panel.add(exit);
+        panel.add(restart);
 		setSize(600, 600);
 		frame.add(this,BorderLayout.CENTER);
-        frame.add(p1,BorderLayout.SOUTH);
+        frame.add(panel,BorderLayout.SOUTH);
         restart.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
         		NewGame();
@@ -197,13 +70,9 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
                 System.exit(0);
             }  
         });
+        
         NewGame();
         frame.setVisible(true);
-        // try {
-        //     clientConnect();
-        // } catch (Exception e) {
-        //     //TODO: handle exception
-        // }
 
     }
     
@@ -406,28 +275,10 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     public void mouseClicked(MouseEvent event) {
     	clickx=event.getX();
     	clicky=event.getY();
-    	if(activePlayer==PLAYER_ONE)
-            getClick();
-        else
-            setClick(clickx,clicky);
         handleClick();
+        client.sendMessage(clickx, clicky);
     }
-    void clientConnect() throws Exception{
-		Scanner scanner = new Scanner(System.in);
-        // System.out.print("Enter your username for the group chat: ");
-        float x=0;
-        float y=0;
-
-        Socket socket = new Socket("localhost", 3389);
-
-        Client client = new Client(socket, x, y);
-        client.listenForMessage();
-        client.sendMessage();
-	}
-	public void getClick(){
-		
-	}
-	public void setClick(float x, float y){
+	public void setClick(int x, int y){
 		handleClick();
 	}
     
@@ -538,86 +389,8 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     	g.drawImage(bufferImage, 0, 0, null);
     }
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
+        
     	new Dots();
     }
-} 
-
-
-class Client {
-
-    private Socket socket;
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
-    private float x;
-    private float y;
-    // Dots d = new Dots();
-
-    public Client(Socket socket, float x, float y) {
-        try {
-            this.socket = socket;
-            this.x = x;
-            this.y = y;
-            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
-        }
-    }
-
-    public void sendMessage() {
-        try {
-            // bufferedWriter.write(username);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-            Scanner scanner = new Scanner(System.in);
-            while (socket.isConnected()) {
-                // String messageToSend = scanner.nextLine();
-                bufferedWriter.write(x + ":" + y);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
-            }
-        } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
-        }
-    }
-
-    public void listenForMessage() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String input;
-                while (socket.isConnected()) {
-                    try {
-                        input = bufferedReader.readLine();
-                        System.out.println(input);
-                        String[] arrOfStr = input.split(":");
-                        x= Float.parseFloat(arrOfStr[0]);
-                        y= Float.parseFloat(arrOfStr[1]);
-                        new Dots().setClick(x,y);
-                    } 
-                    catch (IOException e) {
-                        closeEverything(socket, bufferedReader, bufferedWriter);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
-        try {
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
-            }
-            if (socket != null) {
-                socket.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
-

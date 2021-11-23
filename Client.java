@@ -1,20 +1,25 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
 
+class Client {
+    
 
-
-class Client1 {
-
-    private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
-    private String username;
+    // private String username;
 
-    public Client1(Socket socket, String username) {
+    public Socket conect(){
         try {
-            this.socket = socket;
-            this.username = username;
+            socket = new Socket("localhost", 3389);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return socket;
+    }
+    Socket socket=conect();
+    public Client() {
+        try {
+
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.bufferedWriter= new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         } catch (IOException e) {
@@ -22,15 +27,10 @@ class Client1 {
         }
     }
 
-    public void sendMessage() {
+    public void sendMessage(int x, int y) {
         try {
-            bufferedWriter.write(username);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-            Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
+                bufferedWriter.write(x + ":" + y);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
@@ -43,16 +43,16 @@ class Client1 {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String msgFromGroupChat;
-                while (socket.isConnected()) {
-                    try {
-                        msgFromGroupChat = bufferedReader.readLine();
-                        System.out.println(msgFromGroupChat);
-                    } 
-                    catch (IOException e) {
-                        closeEverything(socket, bufferedReader, bufferedWriter);
+                String input;
+                    while (socket.isConnected()) {
+                        try {
+                            input = bufferedReader.readLine();
+                            System.out.println(input);
+                        } 
+                        catch (IOException e) {
+                            closeEverything(socket, bufferedReader, bufferedWriter);
+                        }
                     }
-                }
             }
         }).start();
     }
@@ -73,15 +73,15 @@ class Client1 {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    // public static void main(String[] args) throws IOException {
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter your username for the group chat: ");
-        String username = scanner.nextLine();
-        Socket socket = new Socket("52.183.155.51", 3389);
+    //     Scanner scanner = new Scanner(System.in);
+    //     System.out.print("Enter your username for the group chat: ");
+    //     String username = scanner.nextLine();
+    //     Socket socket = new Socket("52.183.155.51", 3389);
 
-        Client1 client = new Client1(socket, username);
-        client.listenForMessage();
-        client.sendMessage();
-    }
+    //     Client client = new Client(socket);
+    //     client.listenForMessage();
+    //     client.sendMessage();
+    // }
 }
