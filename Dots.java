@@ -10,7 +10,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 	JButton exit;
 	JPanel p1;
      
-    public int DOT_NUMBER=6;	//	The number of dots on each side of the square game board
+    public int DOT_NUMBER=0;	//	The number of dots on each side of the square game board
     public static final int DOT_GAP=40;		//	The space between each dot					
     public static final int DOT_SIZE=8;		//	The length of the sides of the square dot
     
@@ -69,8 +69,10 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
             }  
         });
     
-        NewGame();
+        
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setVisible(true);
+        NewGame();
     }
 
     private void loadProperties() {
@@ -154,7 +156,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
 
 	
 	private void NewGame(){
-		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (4-9)" );
+		String dot = JOptionPane.showInputDialog( "Enter Number of dots in a row/column (3-8)" );
 		if (dot==null)
 			System.exit(0);
 		DOT_NUMBER = Integer.parseInt(dot);
@@ -265,7 +267,7 @@ public class Dots extends JPanel implements MouseMotionListener, MouseListener {
     public void mouseMoved(MouseEvent event) {
     	mousex=event.getX();
     	mousey=event.getY();
-		System.out.println(mousex+":"+mousey);
+		// System.out.println(mousex+":"+mousey);
     	repaint();
     }
     
